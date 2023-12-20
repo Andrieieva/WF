@@ -7,25 +7,33 @@ class WordFrequencyCalculator
 {
     static void Main()
     {
-        string inputFilePath = "input.txt"; // Replace with your input file path
-        string outputFilePath = "output.csv"; // Replace with your desired output file path
+        string inputFilePath = "input.txt"; 
+        string outputFilePath = "output.csv"; 
 
         try
         {
-            // Read the text file
             string textContent = File.ReadAllText(inputFilePath);
 
-            // Calculate word frequencies
             Dictionary<string, int> wordFrequencies = CalculateWordFrequencies(textContent);
 
-            // Write results to CSV file
             WriteToCsv(wordFrequencies, outputFilePath);
 
             Console.WriteLine("Word frequencies calculated and saved to CSV file successfully.");
         }
-        catch (Exception ex)
+        catch (FileNotFoundException ex)
         {
-            Console.WriteLine("An error occurred: " + ex.Message);
+            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine("Please provide a valid path for the input file.");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine("You don't have permission to write to the specified output file.");
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine("There was an issue accessing the input or output file.");
         }
     }
 
@@ -55,17 +63,32 @@ class WordFrequencyCalculator
 
     static void WriteToCsv(Dictionary<string, int> wordFrequencies, string filePath)
     {
-        using (StreamWriter writer = new StreamWriter(filePath))
+        try
         {
-            // Write header
-            writer.WriteLine("word, count, frequency");
-
-            // Write data
-            foreach (var entry in wordFrequencies.OrderByDescending(e => e.Value))
+            using (StreamWriter writer = new StreamWriter(filePath))
             {
-                double frequency = (double)entry.Value / wordFrequencies.Values.Sum();
-                writer.WriteLine($"{entry.Key}, {entry.Value}, {frequency:P2}");
+                writer.WriteLine("word, count, frequency");
+
+                foreach (var entry in wordFrequencies.OrderByDescending(e => e.Value))
+                {
+                    double frequency = (double)entry.Value / wordFrequencies.Values.Sum();
+                    writer.WriteLine($"{entry.Key}, {entry.Value}, {frequency:P2}");
+                }
             }
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine("You don't have permission to write to the specified output file.");
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine("There was an issue accessing the output file.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An unexpected error occurred while writing to the CSV file: {ex.Message}");
         }
     }
 }
